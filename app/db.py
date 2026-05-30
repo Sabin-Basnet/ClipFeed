@@ -15,7 +15,7 @@ DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 class Base(DeclarativeBase):
     pass
 
-
+# we are using library = fastapi_users, which automatically handles password, hashing and logging 
 class User(SQLAlchemyBaseUserTableUUID, Base):
     posts = relationship("Post", back_populates="user")
 
