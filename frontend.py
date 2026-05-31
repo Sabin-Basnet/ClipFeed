@@ -20,7 +20,7 @@ def get_headers():
 
 
 def login_page():
-    st.title("🚀 Welcome to Simple Social")
+    st.title("🚀 Welcome to Clip Feed")
 
     # Simple form with two buttons
     email = st.text_input("Email:")
