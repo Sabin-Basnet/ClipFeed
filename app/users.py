@@ -1,4 +1,3 @@
-import os
 import uuid
 from typing import Optional
 from fastapi import Depends, Request
@@ -10,10 +9,11 @@ from fastapi_users.authentication import (
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
 from app.db import User, get_user_db
+import os
 
 SECRET = os.getenv("JWT_SECRET")
 
-# bearer = frontend will place a secret token inside http header
+
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET

@@ -4,12 +4,14 @@ from app.db import Post, create_db_and_tables, get_async_session, User
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
 from sqlalchemy import select
-from app.images import image_kit
+from app.images import imagekit
+from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
 import shutil
 import os
 import uuid
 import tempfile
 from app.users import auth_backend, current_active_user, fastapi_users
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -18,7 +20,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Authentication and User Routes
 app.include_router(fastapi_users.get_auth_router(auth_backend), prefix='/auth/jwt', tags=["auth"])
 app.include_router(fastapi_users.get_register_router(UserRead, UserCreate), prefix="/auth", tags=["auth"])
 app.include_router(fastapi_users.get_reset_password_router(), prefix="/auth", tags=["auth"])
@@ -35,38 +36,35 @@ async def upload_file(
     temp_file_path = None
 
     try:
-        # Create a secure temporary file to buffer the incoming streaming upload
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as temp_file:
             temp_file_path = temp_file.name
             shutil.copyfileobj(file.file, temp_file)
 
-        # Open the local buffered binary stream safely
-        with open(temp_file_path, "rb") as file_stream:
-            # FIX: Switched from .create() to the correct .upload() method
-            upload_result = image_kit.upload(
-                file=file_stream,
-                file_name=file.filename,
+        upload_result = imagekit.upload_file(
+            file=open(temp_file_path, "rb"),
+            file_name=file.filename,
+            options=UploadFileRequestOptions(
                 use_unique_file_name=True,
                 tags=["backend-upload"]
             )
-
-        # Commit metadata records to SQLite database
-        post = Post(
-            user_id=user.id,
-            caption=caption,
-            url=upload_result.url,
-            file_type="video" if file.content_type.startswith("video/") else "image",
-            file_name=upload_result.name
         )
-        session.add(post)
-        await session.commit()
-        await session.refresh(post)
-        return post
+
+        if upload_result.response_metadata.http_status_code == 200:
+            post = Post(
+                user_id=user.id,
+                caption=caption,
+                url=upload_result.url,
+                file_type="video" if file.content_type.startswith("video/") else "image",
+                file_name=upload_result.name
+            )
+            session.add(post)
+            await session.commit()
+            await session.refresh(post)
+            return post
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        # Cleanup temporary files safely from storage disk arrays
         if temp_file_path and os.path.exists(temp_file_path):
             os.unlink(temp_file_path)
         file.file.close()
@@ -77,10 +75,10 @@ async def get_feed(
         user: User = Depends(current_active_user),
 ):
     result = await session.execute(select(Post).order_by(Post.created_at.desc()))
-    posts = result.scalars().all()
+    posts = [row[0] for row in result.all()]
 
     result = await session.execute(select(User))
-    users = result.scalars().all()
+    users = [row[0] for row in result.all()]
     user_dict = {u.id: u.email for u in users}
 
     posts_data = []
@@ -101,12 +99,9 @@ async def get_feed(
 
     return {"posts": posts_data}
 
+
 @app.delete("/posts/{post_id}")
-async def delete_post(
-    post_id: str, 
-    session: AsyncSession = Depends(get_async_session), 
-    user: User = Depends(current_active_user),
-):
+async def delete_post(post_id: str, session: AsyncSession = Depends(get_async_session), user: User = Depends(current_active_user),):
     try:
         post_uuid = uuid.UUID(post_id)
 
