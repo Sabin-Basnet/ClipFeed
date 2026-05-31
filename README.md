@@ -9,8 +9,7 @@ ClipFeed is a full-stack social media application that allows users to:
 - **Upload images and videos** with automatic cloud storage via ImageKit
 - **Add captions** to their media posts
 - **View a live feed** of all posts from the community
-- **Delete their own posts** anytime
-- **User-friendly interface** built with Streamlit
+- **Delete their own posts**V anytime
 
 ## 🏗️ Project Architecture
 
@@ -23,8 +22,8 @@ app/
 ├── db.py           # Database models (User, Post) and SQLite setup
 ├── users.py        # Authentication logic with JWT and fastapi-users
 ├── images.py       # ImageKit SDK configuration for media uploads
-├── schemas.py      # Pydantic schemas for API request/response validation
-└── __init__.py     # Package initialization
+└── schemas.py      # Pydantic schemas for API request/response validation
+
 ```
 
 **Key Features:**
@@ -39,7 +38,7 @@ app/
   - `DELETE /posts/{post_id}` - Delete a post (requires auth)
   - `/users/*` - User management routes
 
-### Frontend (Streamlit)
+### Frontend (Streamlit) #Just Basic
 Located in `frontend.py`, the web interface provides:
 - **Login/Sign-up page** - User authentication UI
 - **Upload page** - Media upload with caption input
@@ -68,7 +67,7 @@ Located in `frontend.py`, the web interface provides:
 ### 1. Clone the Repository
 
 ```bash
-cd c:\Users\SABIN\Desktop\ClipFeed
+git clone "https://github.com/Sabin-Basnet/ClipFeed.git"
 ```
 
 ### 2. Create a Virtual Environment
@@ -82,12 +81,6 @@ python -m venv venv
 
 ```bash
 pip install -r requirements.txt
-```
-
-Or manually install the required packages:
-
-```bash
-pip install fastapi uvicorn sqlalchemy aiosqlite fastapi-users python-dotenv imagekitio streamlit
 ```
 
 ### 4. Configure Environment Variables
@@ -166,48 +159,6 @@ streamlit run frontend.py
 ### 6. **Logout**
    - Click the "Logout" button in the sidebar
 
-## 🔧 API Endpoints Reference
-
-### Authentication
-
-```bash
-# Register
-POST /auth/register
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
-
-# Login
-POST /auth/jwt/login
-{
-  "username": "user@example.com",
-  "password": "password123"
-}
-
-# Get Current User
-GET /users/me
-Headers: Authorization: Bearer <token>
-```
-
-### Posts
-
-```bash
-# Upload a Post
-POST /upload
-Headers: Authorization: Bearer <token>
-Body: multipart/form-data
-  - file: <image/video file>
-  - caption: "Your caption here"
-
-# Get Feed (all posts)
-GET /feed
-Headers: Authorization: Bearer <token>
-
-# Delete a Post
-DELETE /posts/{post_id}
-Headers: Authorization: Bearer <token>
-```
 
 ## 📁 Database Schema
 
@@ -228,16 +179,11 @@ Headers: Authorization: Bearer <token>
 
 ## 🐛 Troubleshooting
 
-### Database Errors
-If you get UUID type errors:
-- The app uses a custom `GUID` type for SQLite compatibility
-- Database will be auto-created on first run as `test.db`
-- Delete `test.db` to reset the database
-
 ### ImageKit Upload Fails
 - Verify `IMAGEKIT_PRIVATE_KEY` is correct in `.env`
 - Check that your ImageKit account is active
 - Ensure file size is within ImageKit limits
+- Max size -> 100 MB 
 
 ### Authentication Fails
 - Make sure `JWT_SECRET` is set in `.env`
@@ -247,18 +193,6 @@ If you get UUID type errors:
 ### Frontend Can't Connect to Backend
 - Ensure backend is running on `http://localhost:8000`
 - Check that port 8000 is not in use
-- Verify no firewall is blocking the connection
-
-## 🔐 Security Notes
-
-⚠️ **Important for Production:**
-1. Change the default `JWT_SECRET` in `app/users.py`
-2. Never commit `.env` file with real credentials
-3. Use environment variables for all sensitive data
-4. Enable HTTPS in production
-5. Implement rate limiting for API endpoints
-6. Use a proper production database (PostgreSQL recommended)
-7. Add CORS configuration for allowed origins
 
 ## 📦 Project Dependencies
 
@@ -275,26 +209,4 @@ python-dotenv    - Environment variable management
 requests         - HTTP client for frontend
 ```
 
-## 📝 Notes
-
-- All timestamps are in UTC
-- Media files are stored on ImageKit's CDN
-- Posts are soft-deletable (metadata is removed from database)
-- User authentication is stateless (JWT-based)
-- The app supports concurrent users
-
-## 🤝 Contributing
-
-To improve ClipFeed:
-1. Test all changes locally
-2. Update documentation
-3. Follow the existing code style
-4. Test file uploads with different media types
-
-## 📄 License
-
-This project is open-source and available for personal use.
-
----
-
-**Happy sharing! 📸🎥** 
+**Thank You** 
